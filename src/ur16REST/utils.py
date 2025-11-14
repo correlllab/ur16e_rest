@@ -4,14 +4,13 @@ from time import sleep
 
 class robotState(Enum):
     OFF = 0
-    LOCKED = 1
-    ACTIVE = 2
+    ACTIVE = 1
 class RESTAPI():
     def __init__(self, robo_ip):
         self.ROBOT_IP = robo_ip
         self.BASE_URL = f"http://{self.ROBOT_IP}/universal-robots/robot-api"
         #TODO: activate the robot?
-        self.robot_state = robotState.ACTIVE
+        self.robot_state = robotState.OFF
 
     def throw_exception(self, e):
         print(f"An error occurred: {e}")
@@ -25,7 +24,7 @@ class RESTAPI():
         if(self.ROBOT_IP == None or self.BASE_URL == None):
             self.throw_exception("ROBOT_IP and BASE_URL not set!")
             return -1
-        return 0
+        return 0, None
 
     def get_system_time(self):
         if(self.check_set() == -1):
@@ -51,11 +50,17 @@ class RESTAPI():
             self.throw_exception_and_reset("Unable to test system time!")
             return -1
         return 0
-    
-    def get_program_state(self):
-        if(self.check_set() == -1):
+    def try_put(self, url, headers, payload):
+        try:
+            response = requests.put(url, json=payload, headers=headers)
+            response.raise_for_status()
+            sleep(0.5)
+        except requests.exceptions.RequestException as e:
+            self.throw_exception(e)
             return -1, None
-        url = f"{self.BASE_URL}/program/v1/state"
+        return 0, None
+    
+    def try_get(self, url):
         try:
             response = requests.get(url)
             response.raise_for_status()
@@ -65,8 +70,13 @@ class RESTAPI():
             self.throw_exception(e)
             return -1, None
 
+    def get_program_state(self):
+        if(self.check_set() == -1):
+            return -1, None
+        url = f"{self.BASE_URL}/program/v1/state"
+        return self.try_get(url)
         
-    def contact(self):
+    def CRMove(self, contact):
         if self.check_set() == -1:
             return -1, None
         # ensure the robot is active
@@ -79,43 +89,47 @@ class RESTAPI():
             return -1, None
         
         url = f"{self.BASE_URL}/program/v1/load"
-        payload = {"programName": "Contact"}
+        if contact:
+            payload = {"programName": "Contact"}
+        else:
+            payload = {"programName": "Retract"}
         headers = {"accept": "application/json", 
                    "Content-Type": "application/json"}
-        
-        try:
-            response = requests.put(url, json=payload, headers=headers)
-            response.raise_for_status()
-            sleep(0.5)
-        except requests.exceptions.RequestException as e:
-            self.throw_exception(e)
-            return -1, None
-                
+        status, msg =  self.try_put(url, headers, payload)
+        if status == -1:
+            return status, msg
+         
         url = f"{self.BASE_URL}/program/v1/state"
         payload = {"action": "play"}
 
-        try:
-            print("running program...")
-            response = requests.put(url, json=payload, headers=headers)
-            print("program ran.")
-        except requests.exceptions.RequestException as e:
-            self.throw_exception(e)
+        return self.try_put(url, headers, payload)
+
+    def LRSet(self, release):
+        if self.check_set() == -1:
             return -1, None
-
-        return 0, None
+        url = f"{self.BASE_URL}/robotstate/v1/state"
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
+        if release:
+            # we want to release the robot brakes
+            if self.robot_state == robotState.ACTIVE:
+                return 0, None
     
-    def retract(self):
-        return 0, None
-    
-    def lock(self):
-        return 0, None
-    
-    def release(self):
-        return 0, None
+            payload = {"action": "POWER_ON"}
+            status, msg = self.try_put(url, headers, payload)
+            if status == -1:
+                return status, msg
+            payload = {"action": "BRAKE_RELEASE"}
+            status, msg = self.try_put(url, headers, payload)
+            if status == 0:
+                self.robot_state = robotState.ACTIVE
+            return status, msg
         
-
-        
-
-    
-        
-    
+        else:
+            # we want to lock the robot
+            if self.robot_state == robotState.OFF:
+                return 0, None
+            payload = {"action": "POWER_OFF"}
+            status, msg = self.try_put(url, headers, payload)
+            if status == 0:
+                self.robot_state = robotState.OFF
+            return status, msg
