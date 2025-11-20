@@ -52,6 +52,8 @@ class RESTAPI():
         return 0
     def try_put(self, url, headers, payload):
         try:
+            """http://128.138.224.247/universal-robots/robot-api/docs#/"""
+            """https://requests.readthedocs.io/en/latest/"""
             response = requests.put(url, json=payload, headers=headers)
             response.raise_for_status()
             sleep(0.5)
@@ -76,12 +78,12 @@ class RESTAPI():
         url = f"{self.BASE_URL}/program/v1/state"
         return self.try_get(url)
         
-    def CRMove(self, contact):
+    def CRMove(self, contact):#contact (bool) -> true if move into cotact, false if retract
         if self.check_set() == -1:
             return -1, None
         # ensure the robot is active
         if self.robot_state != robotState.ACTIVE:
-            self.thow_exception("The robot is not active!")
+            self.throw_exception("The robot is not active!")
             return -1, None
         status, msg = self.get_program_state()
         if msg['state'] != 'STOPPED':
@@ -104,7 +106,7 @@ class RESTAPI():
 
         return self.try_put(url, headers, payload)
 
-    def LRSet(self, release):
+    def LRSet(self, release):#release bool, if true release, if false lock
         if self.check_set() == -1:
             return -1, None
         url = f"{self.BASE_URL}/robotstate/v1/state"
