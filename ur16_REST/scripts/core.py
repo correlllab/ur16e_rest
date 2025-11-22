@@ -12,6 +12,7 @@ class RESTAPI():
         #TODO: activate the robot?
         self.robot_state = robotState.OFF
 
+   
     def throw_exception(self, e):
         print(f"An error occurred: {e}")
 
@@ -21,13 +22,13 @@ class RESTAPI():
         self.throw_exception(e)
     
     def check_set(self):
-        if(self.ROBOT_IP == None or self.BASE_URL == None):
+        if(self.ROBOT_IP is None or self.BASE_URL is None):
             self.throw_exception("ROBOT_IP and BASE_URL not set!")
-            return -1
+            return -1, None
         return 0, None
 
     def get_system_time(self):
-        if(self.check_set() == -1):
+        if(self.check_set()[0] == -1):
             return -1, None
         url = f"{self.BASE_URL}/system/v1/system-time"
         try:
@@ -43,7 +44,7 @@ class RESTAPI():
             return -1, None
     
     def test_connection(self):
-        if(self.check_set() == -1):
+        if(self.check_set()[0] == -1):
             return -1
         status, _ = self.get_system_time()
         if(status == -1):
@@ -73,65 +74,74 @@ class RESTAPI():
             return -1, None
 
     def get_program_state(self):
-        if(self.check_set() == -1):
+        if(self.check_set()[0] == -1):
             return -1, None
         url = f"{self.BASE_URL}/program/v1/state"
         return self.try_get(url)
-        
-    def CRMove(self, contact):#contact (bool) -> true if move into cotact, false if retract
-        if self.check_set() == -1:
-            return -1, None
-        # ensure the robot is active
+
+
+    def check_ready(self):
+        if self.check_set()[0] == -1:
+            return False
         if self.robot_state != robotState.ACTIVE:
-            self.throw_exception("The robot is not active!")
-            return -1, None
+            self.throw_exception("[check_ready] The robot is not active!")
+            return False
         status, msg = self.get_program_state()
+        if status == -1:
+            print("[check_ready] Unable to get program state!")
+            return False
         if msg['state'] != 'STOPPED':
-            self.throw_exception("The robot is currently running a program!")
-            return -1, None
-        
+            self.throw_exception("[check_ready] The robot is currently running a program!")
+            return False
+        return True
+    def load_program(self, program_name):
+        if not self.check_ready():
+            return -1, "Robot not ready!"
         url = f"{self.BASE_URL}/program/v1/load"
-        if contact:
-            payload = {"programName": "Contact"}
-        else:
-            payload = {"programName": "Retract"}
+        payload = {"programName": program_name}
         headers = {"accept": "application/json", 
                    "Content-Type": "application/json"}
         status, msg =  self.try_put(url, headers, payload)
         if status == -1:
             return status, msg
-         
         url = f"{self.BASE_URL}/program/v1/state"
         payload = {"action": "play"}
-
         return self.try_put(url, headers, payload)
+    def MoveUntilContact(self):
+        return self.load_program("Contact")
+    def Retract(self):
+        return self.load_program("Retract")
 
-    def LRSet(self, release):#release bool, if true release, if false lock
-        if self.check_set() == -1:
+    def send_state(self, state):
+        if self.check_set()[0] == -1:
             return -1, None
         url = f"{self.BASE_URL}/robotstate/v1/state"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
-        if release:
-            # we want to release the robot brakes
-            if self.robot_state == robotState.ACTIVE:
-                return 0, None
-    
-            payload = {"action": "POWER_ON"}
-            status, msg = self.try_put(url, headers, payload)
-            if status == -1:
-                return status, msg
-            payload = {"action": "BRAKE_RELEASE"}
-            status, msg = self.try_put(url, headers, payload)
-            if status == 0:
-                self.robot_state = robotState.ACTIVE
+        payload = {"action": state}
+        status, msg = self.try_put(url, headers, payload)
+        return status, msg
+    def lock_robot(self):
+        if self.robot_state == robotState.OFF:
+            return 0, None
+        status, msg = self.send_state("POWER_OFF")
+        if status == 0:
+            self.robot_state = robotState.OFF
+        return status, msg
+
+
+    def unlock_robot(self):
+        if self.robot_state == robotState.ACTIVE:
+            return 0, None
+        status, msg = self.send_state("POWER_ON")
+        if status == -1:
             return status, msg
+        status, msg = self.send_state("BRAKE_RELEASE")
+        if status == 0:
+            self.robot_state = robotState.ACTIVE
+        return status, msg
         
-        else:
-            # we want to lock the robot
-            if self.robot_state == robotState.OFF:
-                return 0, None
-            payload = {"action": "POWER_OFF"}
-            status, msg = self.try_put(url, headers, payload)
-            if status == 0:
-                self.robot_state = robotState.OFF
-            return status, msg
+    def cheat_state_active(self):
+        self.robot_state = robotState.ACTIVE
+
+        
+            
