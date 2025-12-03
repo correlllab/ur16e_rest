@@ -25,7 +25,7 @@ class UR16RestNode(Node):
         print(f"recived service request: {request}")
         self.get_logger().info('Received BehaviorTrigger request')
         status, msg = None, None
-        behavior = request.behavior.lower().strip()
+        behavior = request.behavior.lower().strip().replace(" ", "")
         if behavior == "moveuntilcontact":
             status, msg = self.api.MoveUntilContact()
             msg = "Robot moved until contact successfully" if msg is None and status == 0 else msg
@@ -41,6 +41,9 @@ class UR16RestNode(Node):
         elif behavior == "poweronrobot":
             status, msg = self.api.power_on_robot()
             msg = "Robot Powered On Successfully" if msg is None and status == 0 else msg
+        elif behavior == "poweroffrobot":
+            status, msg = self.api.power_off_robot()
+            msg = "Robot Powered Off Successfully" if msg is None and status == 0 else msg
         else:
             status = -1
             msg = f"Unknown behavior: {request.behavior}"

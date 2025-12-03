@@ -2,17 +2,11 @@ import requests
 from enum import Enum
 from time import sleep
 
-class robotState(Enum):
-    OFF = 0
-    ACTIVE = 1
 class RESTAPI():
     def __init__(self, robo_ip):
         self.ROBOT_IP = robo_ip
         self.BASE_URL = f"http://{self.ROBOT_IP}/universal-robots/robot-api"
-        #TODO: activate the robot?
-        self.robot_state = robotState.OFF
 
-   
     def throw_exception(self, e):
         print(f"An error occurred: {e}")
 
@@ -24,12 +18,13 @@ class RESTAPI():
     def check_set(self):
         if(self.ROBOT_IP is None or self.BASE_URL is None):
             self.throw_exception("ROBOT_IP and BASE_URL not set!")
-            return -1, None
-        return 0, None
+            return -1, f"{self.ROBOT_IP=} and {self.BASE_URL=} not set!"
+        return 0, f"{self.ROBOT_IP=} and {self.BASE_URL=} set!"
 
     def get_system_time(self):
-        if(self.check_set()[0] == -1):
-            return -1, None
+        set_status, set_msg = self.check_set()
+        if(set_status == -1):
+            return set_status, set_msg
         url = f"{self.BASE_URL}/system/v1/system-time"
         try:
             response = requests.get(url)
@@ -38,19 +33,20 @@ class RESTAPI():
             data = response.json()
             print("System Time Info:")
             print(data)
-            return 0, data
+            return 0, str(data)
         except requests.exceptions.RequestException as e:
             self.throw_exception(e)
-            return -1, None
+            return -1, str(e)
     
     def test_connection(self):
-        if(self.check_set()[0] == -1):
-            return -1
-        status, _ = self.get_system_time()
-        if(status == -1):
+        set_status, set_msg = self.check_set()
+        if(set_status == -1):
+            return set_status, set_msg
+        time_status, time_msg = self.get_system_time()
+        if(time_status == -1):
             self.throw_exception_and_reset("Unable to test system time!")
-            return -1
-        return 0
+            return time_status, time_msg
+        return 0, "Connection test successful!"
     def try_put(self, url, headers, payload):
         try:
             """http://128.138.224.247/universal-robots/robot-api/docs#/"""
@@ -60,91 +56,91 @@ class RESTAPI():
             sleep(0.5)
         except requests.exceptions.RequestException as e:
             self.throw_exception(e)
-            return -1, None
-        return 0, None
+            return -1, str(e)
+        return 0, f"sucessfully put {url=}, {headers=}, {payload=}"
     
     def try_get(self, url):
         try:
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
-            return 0, data
+            return 0, str(data)
         except requests.exceptions.RequestException as e:
             self.throw_exception(e)
-            return -1, None
+            return -1, str(e)
 
     def get_program_state(self):
-        if(self.check_set()[0] == -1):
-            return -1, None
+        set_status, set_msg = self.check_set()
+        if(set_status == -1):
+            return set_status, set_msg
         url = f"{self.BASE_URL}/program/v1/state"
-        return self.try_get(url)
+        get_status, get_msg = self.try_get(url)
+        return get_status, get_msg
 
 
     def check_ready(self):
-        if self.check_set()[0] == -1:
-            return False
-        if self.robot_state != robotState.ACTIVE:
-            self.throw_exception("[check_ready] The robot is not active!")
-            return False
-        status, msg = self.get_program_state()
-        if status == -1:
+        set_status, set_msg = self.check_set()
+        if set_status == -1:
+            return False, set_msg
+        state_status, state_msg = self.get_program_state()
+        if state_status == -1:
             print("[check_ready] Unable to get program state!")
-            return False
-        if msg['state'] != 'STOPPED':
-            self.throw_exception("[check_ready] The robot is currently running a program!")
-            return False
-        return True
+            return False, state_msg
+        
+        # TODO might bring back state checking later
+        # if msg['state'] != 'STOPPED':
+        #     self.throw_exception("[check_ready] The robot is currently running a program!")
+        #     return False
+        return True, "Robot is ready!"
+
+
     def load_program(self, program_name):
-        if not self.check_ready():
-            return -1, "Robot not ready!"
+        ready_bool, ready_msg = self.check_ready()
+        if not ready_bool:
+            return -1, ready_msg
         url = f"{self.BASE_URL}/program/v1/load"
         payload = {"programName": program_name}
         headers = {"accept": "application/json", 
                    "Content-Type": "application/json"}
-        status, msg =  self.try_put(url, headers, payload)
-        if status == -1:
-            return status, msg
+        put_status, put_msg =  self.try_put(url, headers, payload)
+        if put_status == -1:
+            return put_status, put_msg
         url = f"{self.BASE_URL}/program/v1/state"
         payload = {"action": "play"}
-        return self.try_put(url, headers, payload)
+        play_status, play_msg = self.try_put(url, headers, payload)
+        return play_status, play_msg
     def MoveUntilContact(self):
         return self.load_program("Contact")
     def Retract(self):
         return self.load_program("Retract")
 
     def send_state(self, state):
-        if self.check_set()[0] == -1:
-            return -1, None
+        set_status, set_msg = self.check_set()
+        if set_status == -1:
+            return set_status, set_msg
         url = f"{self.BASE_URL}/robotstate/v1/state"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         payload = {"action": state}
-        status, msg = self.try_put(url, headers, payload)
-        return status, msg
+        put_status, put_msg = self.try_put(url, headers, payload)
+        return put_status, put_msg
+
+
     def lock_robot(self):
-        if self.robot_state == robotState.OFF:
-            return 0, None
         status, msg = self.send_state("POWER_OFF")
-        if status == 0:
-            self.robot_state = robotState.OFF
         return status, msg
 
 
     def unlock_robot(self):
-        if self.robot_state == robotState.ACTIVE:
-            return 0, None
         status, msg = self.send_state("BRAKE_RELEASE")
-        if status == 0:
-            self.robot_state = robotState.ACTIVE
         return status, msg
         
     def power_on_robot(self):
-        if self.robot_state == robotState.ACTIVE:
-            return 0, None
         status, msg = self.send_state("POWER_ON")
         return status, msg
-        
-    def cheat_state_active(self):
-        self.robot_state = robotState.ACTIVE
+
+    def power_off_robot(self):
+        status, msg = self.send_state("POWER_OFF")
+        return status, msg
 
         
             
