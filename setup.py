@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'ur16_REST'
+package_name = 'ur16e_rest'
 
 setup(
     name=package_name,
@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'node = ur16_REST.scripts.node:main',
+            'ur16e_rest_api_node = ur16e_rest.scripts.node:main',
         ],
     },
 )

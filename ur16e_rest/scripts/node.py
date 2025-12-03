@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from custom_ros_messages.srv import UR16BehaviorTrigger
-from ur16_REST.scripts.core import RESTAPI
+from ur16e_rest.scripts.core import RESTAPI
 
 class UR16RestNode(Node):
     def __init__(self):
@@ -14,11 +14,11 @@ class UR16RestNode(Node):
 
         self.srv_move_contact = self.create_service(
             UR16BehaviorTrigger,
-            'ur16_rest/BehaviorTrigger',
+            'ur16e_rest/BehaviorTrigger',
             self.handle_behavior_service
         )
 
-        self.get_logger().info('UR16RestNode ready.')
+        self.get_logger().info('UR16ERestNode ready.')
 
     # ---------- Service Callbacks ----------
     def handle_behavior_service(self, request, response):
@@ -38,12 +38,15 @@ class UR16RestNode(Node):
         elif behavior == "lockrobot":
             status, msg = self.api.lock_robot()
             msg = "Robot locked successfully" if msg is None and status == 0 else msg
+        elif behavior == "poweronrobot":
+            status, msg = self.api.power_on_robot()
+            msg = "Robot Powered On Successfully" if msg is None and status == 0 else msg
         else:
             status = -1
             msg = f"Unknown behavior: {request.behavior}"
         print(f"behavior {behavior} returned status: {status}, msg: {msg}")
         response.success = (status == 0)
-        response.message = msg
+        response.message = str(msg)
         print(f"sending service response: {response}")
         return response
 

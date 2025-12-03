@@ -132,12 +132,15 @@ class RESTAPI():
     def unlock_robot(self):
         if self.robot_state == robotState.ACTIVE:
             return 0, None
-        status, msg = self.send_state("POWER_ON")
-        if status == -1:
-            return status, msg
         status, msg = self.send_state("BRAKE_RELEASE")
         if status == 0:
             self.robot_state = robotState.ACTIVE
+        return status, msg
+        
+    def power_on_robot(self):
+        if self.robot_state == robotState.ACTIVE:
+            return 0, None
+        status, msg = self.send_state("POWER_ON")
         return status, msg
         
     def cheat_state_active(self):
