@@ -103,16 +103,27 @@ class RESTAPI():
         headers = {"accept": "application/json", 
                    "Content-Type": "application/json"}
         put_status, put_msg =  self.try_put(url, headers, payload)
-        if put_status == -1:
-            return put_status, put_msg
+        return put_status, put_msg
+        
+    def play_program(self):
+        ready_bool, ready_msg = self.check_ready()
+        if not ready_bool:
+            return -1, ready_msg
         url = f"{self.BASE_URL}/program/v1/state"
         payload = {"action": "play"}
+        headers = {"accept": "application/json", 
+                   "Content-Type": "application/json"}
         play_status, play_msg = self.try_put(url, headers, payload)
         return play_status, play_msg
+
     def MoveUntilContact(self):
         return self.load_program("Contact")
     def Retract(self):
         return self.load_program("Retract")
+
+    def ros2_control(self):
+        #OPTIONAL NOT REALLY NEEDED, but its nice if the tablet reads external control
+        return self.load_program("ExternalControl")
 
     def send_state(self, state):
         set_status, set_msg = self.check_set()
@@ -123,12 +134,6 @@ class RESTAPI():
         payload = {"action": state}
         put_status, put_msg = self.try_put(url, headers, payload)
         return put_status, put_msg
-
-
-    def lock_robot(self):
-        status, msg = self.send_state("POWER_OFF")
-        return status, msg
-
 
     def unlock_robot(self):
         status, msg = self.send_state("BRAKE_RELEASE")
