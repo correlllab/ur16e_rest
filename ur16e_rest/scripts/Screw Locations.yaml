@@ -1,0 +1,95 @@
+Screw Locations
+SCREW 1
+- Translation: [0.306, -0.624, 1.033]
+- Rotation: in Quaternion (xyzw) [-0.692, 0.722, 0.008, 0.007]
+name:
+- shoulder_lift_joint
+- elbow_joint
+- wrist_1_joint
+- wrist_2_joint
+- wrist_3_joint
+- shoulder_pan_joint
+position:
+- -1.8353263340392054
+- -1.4010802507400513
+- -1.4565215867808838
+- 4.704919815063477
+- -1.8898323217975062
+- -1.2103412787066858
+
+SCREW 2
+- Translation: [0.405, -0.623, 1.033]
+- Rotation: in Quaternion (xyzw) [-0.691, 0.723, 0.003, -0.007]
+name:
+- shoulder_lift_joint
+- elbow_joint
+- wrist_1_joint
+- wrist_2_joint
+- wrist_3_joint
+- shoulder_pan_joint
+position:
+- -1.8280636272826136
+- -1.401463508605957
+- -1.4906918120435257
+- 4.700307369232178
+- -1.7259424368487757
+- -1.3708065191852015
+
+
+SCREW 3
+- Translation: [0.509, -0.631, 1.034]
+- Rotation: in Quaternion (xyzw) [-0.703, 0.711, 0.006, -0.006]
+name:
+- shoulder_lift_joint
+- elbow_joint
+- wrist_1_joint
+- wrist_2_joint
+- wrist_3_joint
+- shoulder_pan_joint
+position:
+- -1.8825613460936488
+- -1.331817388534546
+- -1.4981300842813035
+- 4.695348739624023
+- -1.5883172194110315
+- -1.5409138838397425
+
+
+
+
+SCREW 4
+- Translation: [0.607, -0.628, 1.032]
+- Rotation: in Quaternion (xyzw) [-0.698, 0.716, -0.010, -0.011]
+name:
+- shoulder_lift_joint
+- elbow_joint
+- wrist_1_joint
+- wrist_2_joint
+- wrist_3_joint
+- shoulder_pan_joint
+position:
+- -1.934702058831686
+- -1.241634488105774
+- -1.5648957605338474
+- 4.706243991851807
+- -1.423706356679098
+- -1.6918342749225062
+
+
+SCREW 5
+- Translation: [0.705, -0.638, 1.032]
+- Rotation: in Quaternion (xyzw) [-0.699, 0.715, 0.008, 0.003]
+name:
+- shoulder_lift_joint
+- elbow_joint
+- wrist_1_joint
+- wrist_2_joint
+- wrist_3_joint
+- shoulder_pan_joint
+position:
+- -2.0691048107542933
+- -1.0467400550842285
+- -1.5791546307005824
+- 4.710046291351318
+- -1.2891066710101526
+- -1.8309362570392054

@@ -25,10 +25,10 @@ class UR16RestNode(Node):
             callback_group = self.cb_group
         )
 
-        self.robot_program_trigger_client = self.create_client(Trigger, '/io_and_status_controller/resend_robot_program',callback_group = self.cb_group)
-        self.get_logger().info('Waiting for /io_and_status_controller/resend_robot_program service...')
-        self.robot_program_trigger_client.wait_for_service()
-        self.get_logger().info('resend_robot_program service available')
+        # self.robot_program_trigger_client = self.create_client(Trigger, '/io_and_status_controller/resend_robot_program',callback_group = self.cb_group)
+        # self.get_logger().info('Waiting for /io_and_status_controller/resend_robot_program service...')
+        # self.robot_program_trigger_client.wait_for_service()
+        # self.get_logger().info('resend_robot_program service available')
 
 
 
@@ -43,6 +43,8 @@ class UR16RestNode(Node):
         if behavior in ("moveuntilcontact", "contact"):
             status, msg = self.api.MoveUntilContact()
             msg = "Robot moved until contact successfully" if msg is None and status == 0 else msg
+        elif behavior in ("zforce"):
+            self.api.load_program("ZForce")
         elif behavior in ("retract",):
             status, msg = self.api.Retract()
             msg = "Robot retracted successfully" if msg is None and status == 0 else msg
@@ -55,7 +57,12 @@ class UR16RestNode(Node):
         elif behavior in ("poweroffrobot", "poweroff"):
             status, msg = self.api.power_off_robot()
             msg = "Robot Powered Off Successfully" if msg is None and status == 0 else msg
-
+        elif behavior in ("above_screw_1"):
+            status, msg = self.api.load_program("AboveScrew1")
+        elif behavior in ("above_screw_2"):
+            status, msg = self.api.load_program("AboveScrew2")
+        elif behavior in ("above_screw_3"):
+            status, msg = self.api.load_program("AboveScrew3")
         elif behavior in ("ros2control", "externalcontrol"):
             #CALLING ROS2 control is not needed, you just need to invoke the resend_robot_program service
             # status, msg = self.api.ros2_control()
@@ -96,6 +103,7 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.shutdown()
+
 
 
 if __name__ == '__main__':
