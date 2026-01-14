@@ -5,7 +5,7 @@ from ur16e_rest.scripts.core import RESTAPI
 from std_srvs.srv import Trigger
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
-from ur_manipulation.srv import PlanToPose, ExecutePlan, PlanToJoint
+from arpa_control.srv import PlanToPose, ExecutePlan, PlanToJoint
 from moveit_msgs.srv import GetCartesianPath
 import numpy as np
 import time
