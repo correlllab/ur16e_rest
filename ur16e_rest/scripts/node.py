@@ -11,6 +11,7 @@ from rclpy.executors import MultiThreadedExecutor
 class UR16RestNode(Node):
     def __init__(self):
         super().__init__('ur16_rest_node')
+        # print("\n\n\n UR REST INIT\n\n\n")
         self.robot_ip = "128.138.224.247"
         self.cb_group = ReentrantCallbackGroup()
 
@@ -33,8 +34,24 @@ class UR16RestNode(Node):
 
 
 
-        self.get_logger().info('UR16ERestNode ready.')
+        # self.get_logger().info('UR16ERestNode ready.')
 
+<<<<<<< Updated upstream
+=======
+        # Run startup sequence in a one-shot timer so the executor is spinning
+        # (synchronous service calls deadlock if called before spin)
+        # self.startup_timer = self.create_timer(2.0, self._startup_sequence, callback_group=self.cb_group)
+
+    def _startup_sequence(self):
+        self.startup_timer.cancel()
+        self.get_logger().info('Running startup sequence...')
+        self.api.load_program("set_tcp")
+        time.sleep(1)
+        self.api.play_program()
+        time.sleep(1)
+        self.robot_program_trigger_client.call(Trigger.Request())
+        # self.get_logger().info('UR REST READY TO GO TIMER')
+>>>>>>> Stashed changes
     # ---------- Service Callbacks ----------
     def handle_behavior_service(self, request, response):
         self.get_logger().info(f"Received BehaviorTrigger request: {request}")
