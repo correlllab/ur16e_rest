@@ -5,7 +5,7 @@ from ur16e_rest.scripts.core import RESTAPI
 from std_srvs.srv import Trigger
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
-
+import time
 
 
 class UR16RestNode(Node):
@@ -26,21 +26,19 @@ class UR16RestNode(Node):
             callback_group = self.cb_group
         )
 
-        # self.robot_program_trigger_client = self.create_client(Trigger, '/io_and_status_controller/resend_robot_program',callback_group = self.cb_group)
-        # self.get_logger().info('Waiting for /io_and_status_controller/resend_robot_program service...')
-        # self.robot_program_trigger_client.wait_for_service()
-        # self.get_logger().info('resend_robot_program service available')
+        self.robot_program_trigger_client = self.create_client(Trigger, '/io_and_status_controller/resend_robot_program',callback_group = self.cb_group)
+        self.get_logger().info('Waiting for /io_and_status_controller/resend_robot_program service...')
+        self.robot_program_trigger_client.wait_for_service()
+        self.get_logger().info('resend_robot_program service available')
 
 
 
 
         # self.get_logger().info('UR16ERestNode ready.')
 
-<<<<<<< Updated upstream
-=======
         # Run startup sequence in a one-shot timer so the executor is spinning
         # (synchronous service calls deadlock if called before spin)
-        # self.startup_timer = self.create_timer(2.0, self._startup_sequence, callback_group=self.cb_group)
+        self.startup_timer = self.create_timer(2.0, self._startup_sequence, callback_group=self.cb_group)
 
     def _startup_sequence(self):
         self.startup_timer.cancel()
@@ -51,7 +49,6 @@ class UR16RestNode(Node):
         time.sleep(1)
         self.robot_program_trigger_client.call(Trigger.Request())
         # self.get_logger().info('UR REST READY TO GO TIMER')
->>>>>>> Stashed changes
     # ---------- Service Callbacks ----------
     def handle_behavior_service(self, request, response):
         self.get_logger().info(f"Received BehaviorTrigger request: {request}")
@@ -74,12 +71,6 @@ class UR16RestNode(Node):
         elif behavior in ("poweroffrobot", "poweroff"):
             status, msg = self.api.power_off_robot()
             msg = "Robot Powered Off Successfully" if msg is None and status == 0 else msg
-        elif behavior in ("above_screw_1"):
-            status, msg = self.api.load_program("AboveScrew1")
-        elif behavior in ("above_screw_2"):
-            status, msg = self.api.load_program("AboveScrew2")
-        elif behavior in ("above_screw_3"):
-            status, msg = self.api.load_program("AboveScrew3")
         elif behavior in ("ros2control", "externalcontrol"):
             #CALLING ROS2 control is not needed, you just need to invoke the resend_robot_program service
             # status, msg = self.api.ros2_control()
@@ -105,6 +96,7 @@ class UR16RestNode(Node):
         response.success = (status == 0)
         response.message = str(msg)
         self.get_logger().info(f"sending service response: {response}")
+        time.sleep(1)
         return response
 
 

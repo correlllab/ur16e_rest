@@ -24,9 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'ur16e_rest_api_node = ur16e_rest.scripts.node:main',
-            'orchestrator_node = ur16e_rest.scripts.orchestrator_node:main',
-            'test_node = ur16e_rest.scripts.test_node:main',
+            'ur16e_rest_api_node = ur16e_rest.scripts.ur16e_rest_node:main',
         ],
     },
 )

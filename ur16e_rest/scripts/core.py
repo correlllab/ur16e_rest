@@ -47,13 +47,15 @@ class RESTAPI():
             self.throw_exception_and_reset("Unable to test system time!")
             return time_status, time_msg
         return 0, "Connection test successful!"
+
+
     def try_put(self, url, headers, payload):
         try:
             """http://128.138.224.247/universal-robots/robot-api/docs#/"""
             """https://requests.readthedocs.io/en/latest/"""
             response = requests.put(url, json=payload, headers=headers)
             response.raise_for_status()
-            sleep(0.5)
+            sleep(1.5)
         except requests.exceptions.RequestException as e:
             self.throw_exception(e)
             return -1, str(e)
@@ -120,10 +122,6 @@ class RESTAPI():
         return self.load_program("Contact")
     def Retract(self):
         return self.load_program("Retract")
-
-    def ros2_control(self):
-        #OPTIONAL NOT REALLY NEEDED, but its nice if the tablet reads external control
-        return self.load_program("ExternalControl")
 
     def send_state(self, state):
         set_status, set_msg = self.check_set()
