@@ -57,8 +57,11 @@ class UR16RestNode(Node):
         if behavior in ("moveuntilcontact", "contact"):
             status, msg = self.api.MoveUntilContact()
             msg = "Robot moved until contact successfully" if msg is None and status == 0 else msg
+        elif behavior in ("spiralforce", "spiral"):
+            status, msg = self.api.load_program("SpiralForce")
+            msg = "SpiralForce program loaded successfully" if msg is None and status == 0 else msg
         elif behavior in ("zforce"):
-            self.api.load_program("ZForce")
+            status, msg = self.api.load_program("ZForce")
         elif behavior in ("retract",):
             status, msg = self.api.Retract()
             msg = "Robot retracted successfully" if msg is None and status == 0 else msg
