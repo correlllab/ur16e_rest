@@ -65,15 +65,6 @@ class UR16RestNode(Node):
         elif behavior in ("retract",):
             status, msg = self.api.Retract()
             msg = "Robot retracted successfully" if msg is None and status == 0 else msg
-        elif behavior in ("unlockrobot", "unlock"):
-            status, msg = self.api.unlock_robot()
-            msg = "Robot unlocked successfully" if msg is None and status == 0 else msg
-        elif behavior in ("poweronrobot", "poweron"):
-            status, msg = self.api.power_on_robot()
-            msg = "Robot Powered On Successfully" if msg is None and status == 0 else msg
-        elif behavior in ("poweroffrobot", "poweroff"):
-            status, msg = self.api.power_off_robot()
-            msg = "Robot Powered Off Successfully" if msg is None and status == 0 else msg
         elif behavior in ("ros2control", "externalcontrol"):
             #CALLING ROS2 control is not needed, you just need to invoke the resend_robot_program service
             # status, msg = self.api.ros2_control()
