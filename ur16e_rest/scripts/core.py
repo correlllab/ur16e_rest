@@ -51,7 +51,7 @@ class RESTAPI():
 
     def try_put(self, url, headers, payload):
         try:
-            """http://128.138.224.247/universal-robots/robot-api/docs#/"""
+            """http://192.168.1.5/universal-robots/robot-api/docs#/"""
             """https://requests.readthedocs.io/en/latest/"""
             response = requests.put(url, json=payload, headers=headers)
             response.raise_for_status()

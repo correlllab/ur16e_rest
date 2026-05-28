@@ -12,7 +12,7 @@ class UR16RestNode(Node):
     def __init__(self):
         super().__init__('ur16_rest_node')
         # print("\n\n\n UR REST INIT\n\n\n")
-        self.robot_ip = "128.138.224.247"
+        self.robot_ip = "192.168.1.5"
         self.cb_group = ReentrantCallbackGroup()
 
         # Declare and read robot_ip parameter
